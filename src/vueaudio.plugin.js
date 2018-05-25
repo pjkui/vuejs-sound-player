@@ -6,7 +6,8 @@ export const prefixCls = 'vue-sound'
 export const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx'.replace(/[xy]/g, function (c) {
     let v, r
-    r = Math.random() * 16 | 0; v = c === 'x' ? r : (r & 0x3 | 0x8)
+    r = Math.random() * 16 | 0;
+    v = c === 'x' ? r : (r & 0x3 | 0x8)
     return v.toString(16)
   })
 }
@@ -43,7 +44,7 @@ export default {
       return prefixCls
     }
   },
-  data () {
+  data() {
     return {
       isMuted: false,
       loaded: false,
@@ -60,7 +61,7 @@ export default {
     }
   },
   methods: {
-    setPosition: function name (e) {
+    setPosition: function name(e) {
       let tag = e.target
       if (this.paused) return
 
@@ -86,12 +87,16 @@ export default {
       this.hideVolumeSlider = true
     },
     stop: function () {
+      // console.log('stop');
+
       this.playing = false
       this.paused = true
       this.audio.pause()
       this.audio.currentTime = 0
     },
     play: function () {
+      console.log('play');
+
       if (this.playing && !this.paused) return
       this.paused = false
       this.audio.play()
@@ -99,10 +104,11 @@ export default {
     },
     pause: function () {
       this.paused = !this.paused;
-      (this.paused) ? this.audio.pause() : this.audio.play()
+      (this.paused) ? this.audio.pause(): this.audio.play()
     },
     changeLoop: function () {
       this.innerLoop = !this.innerLoop
+      this.audio && (this.audio.loop = this.innerLoop);
     },
     download: function () {
       this.stop()
@@ -115,7 +121,7 @@ export default {
     },
     _handleLoaded: function () {
       if (this.audio.readyState >= 2) {
-        if (this.autoPlay) this.play()
+        if (this.autoPlay || this.audio.loop) this.play()
 
         this.loaded = true
         this.totalDuration = parseInt(this.audio.duration)
@@ -141,9 +147,20 @@ export default {
       this.audio.addEventListener('loadeddata', this._handleLoaded)
       this.audio.addEventListener('pause', this._handlePlayPause)
       this.audio.addEventListener('play', this._handlePlayPause)
+      this.audio.addEventListener('error', this._handleOnError)
     },
     getAudio: function () {
-      return this.$el.querySelectorAll('audio')[0]
+      var rt = this.$el.querySelectorAll('audio')[0];
+      return rt;
+    },
+    _handleOnError: function (params) {
+      console.log('has error in play music, then retry to play it.');
+
+      // console.log(params);
+      let srcstr = this.audio.src.split('?')[0];
+      this.audio.src = srcstr + '?t=' + new Date().getTime();
+      this.playing = false;
+      this.paused = true;
     }
   },
   mounted: function () {
@@ -157,6 +174,7 @@ export default {
     this.audio.removeEventListener('loadeddata', this._handleLoaded)
     this.audio.removeEventListener('pause', this._handlePlayPause)
     this.audio.removeEventListener('play', this._handlePlayPause)
+    this.audio.removeEventListener('error', this._handleOnError)
   }
 
 }
