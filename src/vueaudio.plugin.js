@@ -31,6 +31,10 @@ export default {
     loop: {
       type: Boolean,
       default: false
+    },
+    crossOrigin: {
+      type: string,
+      default: 'anonymous'
     }
   },
   computed: {
@@ -166,6 +170,7 @@ export default {
   mounted: function () {
     this.uuid = generateUUID()
     this.audio = this.getAudio()
+    this.audio.crossOrigin = this.crossOrigin;
     this.innerLoop = this.loop
     this.init()
   },
